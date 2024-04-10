@@ -6,10 +6,10 @@ import {BasicERC20} from "../src/BasicERC20.sol";
 
 contract DeployedBank is Script {
 
-    function run(address tokenAddress) external returns(Bank bank) {
+    function run() external returns(Bank bank) {
         vm.startBroadcast();
         // 部署bank
-        bank = new Bank(tokenAddress);
+        bank = new Bank();
         vm.stopBroadcast();
         console.log("bank address:",address(bank));
     }

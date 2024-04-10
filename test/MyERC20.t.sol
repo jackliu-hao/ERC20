@@ -14,14 +14,11 @@ contract BankTest is Test{
 
 
     function setUp() external {
-        //先部署ERC20合约
+        DeployedBank deployedBank =  new DeployedBank();
+        bank = deployedBank.run();
         DeployedBasicERC20 deployedBasicERC20 = new DeployedBasicERC20();
         basicERC20 = deployedBasicERC20.run();
         erc20Owner = basicERC20.contractOwner();
-
-        DeployedBank deployedBank =  new DeployedBank();
-        bank = deployedBank.run(address(basicERC20));
-        
     }
 
     //测试ERC20代币转账
@@ -59,26 +56,7 @@ contract BankTest is Test{
         // assertEq(bank.balanceOf(USER), 1000); // failed
         // 但是实际为0
         assertEq(bank.balanceOf(USER), 0 ); //pass 
-        //出现这种情况的原因是 ， 银行合约并不知道用户向他转账了
     }
     //测试实现了approve后向银行转账
-    function testERC20TransferWithapproval() public {
-        // 先给USER转200
-         vm.prank(basicERC20.contractOwner());
-         //向USER转一些钱
-        basicERC20.transfer(USER, 200);
-
-        // USER授权给银行100
-        vm.startPrank(USER);
-        basicERC20.approve(address(bank), 100); 
-        // 此时银行的授权额度应该为100
-        assertEq(basicERC20.allowance(USER, address(bank)), 100);       
-        // 银行调用ERC20的transferFrom方法 转账100 
-        bank.deposit(100);
-        //此时USER余额应该为100 , 银行余额也是100 ，银行的授权额度应该为0
-        assertEq(basicERC20.balanceOf(USER), 100);
-        assertEq(bank.balanceOf(USER), 100);
-        assertEq(basicERC20.allowance(USER, address(bank)), 0);
-    }
-
+    
 }

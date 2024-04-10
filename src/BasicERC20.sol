@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {IERC20} from "./IERC20.sol";
-
-contract BasicERC20 is IERC20 {
+contract BasicERC20 {
     // 名称
     string public s_name;
     // 代号 USD/BTC
@@ -19,16 +17,14 @@ contract BasicERC20 is IERC20 {
     // 合约所有者
     address public contractOwner;
 
-    //  事件 ,这里集成了的话，在子类事件就不需要在写了
-    // //from 向 to转 value
-    // event Transfer(address indexed from , address indexed to , uint256 value);
-    // //owner 授权给 spender value
-    // event Approval(address indexed owner,address indexed spender,uint256 value);
+    //  事件
+    //from 向 to转 value
+    event Transfer(address indexed from , address indexed to , uint256 value);
+    //owner 授权给 spender value
+    event Approval(address indexed owner,address indexed spender,uint256 value);
 
     // 余额不足 
     error InsufficientBalance(address user,uint256 balance,uint256 amount);
-    // 授权额度不足
-    error InsufficientAllowance(address owner,address spender,uint256 allowance,uint256 amount);
 
     // 构造器
     constructor(
@@ -95,38 +91,19 @@ contract BasicERC20 is IERC20 {
      * 释放 {Approval} 事件.
      */
     function approve(address spender,uint256 amount) external returns(bool) {
-        s_allowances[msg.sender][spender] += amount; // 不能使用等于，因为可以多次授权
+        s_allowances[msg.sender][spender] = amount;
         emit Approval(msg.sender,spender,amount);
         return true;
     }
     /**
-     *  如果成功，返回 `true`.  
-     * 此时转账的流程是 ，用户先将自己的钱授权给银行，
-     * 银行再调用 ERC20合约的transferFrom 进行代替 用户转账
+     * @dev 通过授权机制，从`from`账户向`to`账户转账`amount`数量代币。转账的部分会从调用者的`allowance`中扣除。
+     *
+     * 如果成功，返回 `true`.
+     *
      * 释放 {Transfer} 事件.
-     * @dev 通过授权机制，
-     * 从`from`账户向`to`账户转账`amount`数量代币。转账的部分会从调用者的`allowance`中扣除。
-     * 如：如果A向B转账：
-     *      1、 A向B先授权了 100 ， 这个时候，s_allowances[A][B] = 100 ，表示B有A授权的100块钱
-     *      2、 A调用B合约的存钱方法，B合约的存钱方法中调用 ERC20合约的 transferFrom(from,to,amount)
-     *         from就是A的地址，to就是B的地址，
      */
-    function transferFrom(address from,address to,uint256 amount) external returns(bool) {
-        // 判断 allowance 是否足够
-        if (s_allowances[from][to] < amount){
-            revert InsufficientAllowance(
-                        from, // 用户
-                        to,  // 授权用户
-                        s_allowances[from][to],// 剩余额度
-                        amount  // 此次转账
-                );
-        }
-        // 本质上，这个操作也是转账，需要变动 from 和 to的 余额
-        s_balances[from] -= amount;
-        s_balances[to] += amount;
-        // 将额度减少
-        s_allowances[from][to] -= amount;
-        return true;
-    }
+    // function transferFrom(address from,address to,uint256 amount) external returns(bool) {
+
+    // }
     
 }
